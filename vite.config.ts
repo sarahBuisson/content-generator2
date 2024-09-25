@@ -3,7 +3,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: 'example-react-vite-pwa', // <--- 👀
+  base: 'content-generator2', // <--- 👀
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
