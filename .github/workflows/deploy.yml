@@ -26,6 +26,9 @@ jobs:
         run: npm run build
 
       - name: Deploy to GitHub Pages
-        run: npx gh-pages -d dist
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+          npx gh-pages -d dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
