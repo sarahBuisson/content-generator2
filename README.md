@@ -1,5 +1,5 @@
 # Example React vite PWA
 
-https://francochan.co/example-react-vite-pwa/
+https://sarahbuisson.github.io/content-generator2/
 
-[dev.to post](https://dev.to/iamfranco/deploy-react-vite-pwa-to-github-pages-35i)
+en local : gh-pages -d dist
