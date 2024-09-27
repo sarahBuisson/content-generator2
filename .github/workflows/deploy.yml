@@ -27,8 +27,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "Your Name"
-          npx gh-pages -d dist
+          git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/sarahBuisson/content-generator2.git
+          npx gh-pages -d dist -u "github-actions-bot <support+actions@github.com>"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
