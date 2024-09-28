@@ -2,33 +2,33 @@ import { ImportImageFromFile, ImportImageFromURL, TakePhoto } from './Uploaders'
 
 import TogglableWrapper from '../components/TogglableWrapper';
 import { useState } from 'react';
-import { reduceAndFormatImage } from '../service/processImage';
-import * as ImageTracer from 'imagetracerjs';
+import { fileToImageData } from '../service/processImage';
+import { ImageTracer } from '@image-tracer-ts/core';
 
 export function SvgExtractor() {
 
     const [image, setImage] = useState<File>()
-    const [svg, setSvg] = useState()
+    const [svg, setSvg] = useState("<svg>nothing</svg>")
 
     function onHandleImage(image: File) {
-        console.log(image)
+        console.log("image",image)
         setImage(image);
     }
 
     function onProcessImage() {
-        reduceAndFormatImage(image!!, 150, 200,
-            'jpeg', (reducedFile) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
 
-                    ImageTracer.imageToSVG(
-                        reader.result as string,
-                        (svgstr: string) => setSvg(svgstr),
+        fileToImageData(image!,150, 200).then((imageData)=>{
+
+                  const tracer =   new ImageTracer({numberOfColors: 3, lineFilter: true})
+
+           const svgstr= tracer.traceImage(
+                          imageData
+
                         // 'posterized2'
-                        {numberofcolors: 2, linefilter: true, roundcoords: 0.001}
+
                     );
-                };
-                reader.readAsDataURL(reducedFile);
+                  setSvg(svgstr)
+
 
             });
     }
@@ -54,3 +54,4 @@ export function SvgExtractor() {
     )
 
 }
+

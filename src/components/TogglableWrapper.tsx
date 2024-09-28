@@ -7,19 +7,20 @@ interface TogglableWrapperProperties {
 }
 
 export default function TogglableWrapper({title, children, initialState}: TogglableWrapperProperties): JSX.Element {
-    const [isVisible, setIsVisible] = useState(initialState);
+    const [isOpen, setIsOpen] = useState(initialState);
 
     const onToggleVisibility = () => {
-        setIsVisible(!isVisible);
+        setIsOpen(!isOpen);
     };
 
     return (
         <div>
             <button onClick={onToggleVisibility}>
-                {title} {isVisible ? 'Hide' : 'Show'}
+                {title} {isOpen ? 'Hide' : 'Show'}
             </button>
-            {isVisible && <div>{children}</div>}
+            {isOpen && <div>{children}</div>}
         </div>
     );
 };
 
+TogglableWrapper.defaultProps = { initialState: false };
