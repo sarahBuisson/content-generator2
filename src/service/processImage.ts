@@ -65,7 +65,7 @@ export function fileToImageData(file: File,    maxWidth: number, maxHeight: numb
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
-                    ctx.drawImage(img, 0, 0);
+                    ctx.drawImage(img, 0, 0, width,height);
                     const imageData = ctx.getImageData(0, 0, img.width, img.height);
                     resolve(imageData);
                 } else {

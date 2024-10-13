@@ -3,9 +3,9 @@ import { ImportImageFromFile, ImportImageFromURL, TakePhoto } from './Uploaders'
 import TogglableWrapper from '../components/TogglableWrapper';
 import { useRef, useState } from 'react';
 import { fileToImageData } from '../service/processImage';
-import { ImageTracer } from '@image-tracer-ts/core';
+import { ImageTracer, Options } from '@image-tracer-ts/core';
 
-export function SvgExtractor() {
+export function SvgExtractor({handleSvg}: { handleSvg: (svg:string)=>void }) {
     const canvasRef = useRef(null);
     const [image, setImage] = useState<File>()
     const [svg, setSvg] = useState("<svg>nothing</svg>")
@@ -24,15 +24,14 @@ export function SvgExtractor() {
             canvas.height = 256;
             const context = canvas.getContext("2d");
             context.putImageData(imageData, 0, 0)
-            const tracer = new ImageTracer()
+            const tracer = new ImageTracer(Options.Presets.posterized1)
 
             const svgstr = tracer.traceImage(
                 imageData
 
-                // 'posterized2'
-
             );
             setSvg(svgstr)
+            handleSvg(svgstr)
 
 
         });

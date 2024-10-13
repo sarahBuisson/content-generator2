@@ -1,4 +1,5 @@
 export function GitHubLoginButton() {
+
     const loginWithGitHub = () => {
         const clientID = 'Iv23liZzMuid1Me3knW8';
         const redirectURI = 'https://sarahbuisson.github.io/content-generator2/';
