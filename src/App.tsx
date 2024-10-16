@@ -14,11 +14,12 @@ function App() {
     const [initFile, setInitFile] = useState<string | null>(null);
 
     const handleSuccess = (data:{access_token:string}) => {
-        console.log("success", data)
+        console.log("handleSuccess", data)
         setToken(data.access_token);
     };
 
     const handleFailure = (error:string) => {
+        console.log("handleFailure", error)
         console.error(error);
     };
 

@@ -8,9 +8,12 @@ const UploadFile = ({token, initFile}: { token: string, initFile: string|null })
     const octokit = new Octokit({
         auth: token
     });
-
+console.log(initFile)
     const [fileName, setFileName] = useState('');
     const [fileContent, setFileContent] = useState(''+initFile);
+if(fileContent!=initFile && initFile!=null){
+    setFileContent(initFile);console.warn(initFile)
+}
 
     const handleFileNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFileName(event.target.value);

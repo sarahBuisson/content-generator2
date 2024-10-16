@@ -7,8 +7,7 @@ export function GitHubCallback({ onSuccess, onFailure }: { onSuccess: (data: { a
     useEffect(() => {
         const code = new URLSearchParams(window.location.search).get('code');
         if (code) {
-            axios.get('\n' +
-                'https://cors-anywhere.herokuapp.com/corsdemo?accessRequest='+Math.random()*10000000)
+
             axios.post('https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token ',
                 { code, client_id:clientId,client_secret:clientSecret },
                 ({headers: { 'Accept': 'application/json',
