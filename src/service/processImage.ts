@@ -48,7 +48,7 @@ export function fileToImageData(file: File,    maxWidth: number, maxHeight: numb
 
                 let width = img.width;
                 let height = img.height;
-
+console.log("ww")
                 if (width > height) {
                     if (width > maxWidth) {
                         height *= maxWidth / width;
@@ -66,7 +66,7 @@ export function fileToImageData(file: File,    maxWidth: number, maxHeight: numb
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
                     ctx.drawImage(img, 0, 0, width,height);
-                    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                    const imageData = ctx.getImageData(0, 0,width, height);
                     resolve(imageData);
                 } else {
                     reject(new Error('Could not get canvas context'));

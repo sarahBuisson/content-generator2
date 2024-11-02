@@ -14,6 +14,12 @@
     "generate-pwa-assets": "pwa-assets-generator"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.0.9",
+    "@chakra-ui/react": "^2.3.2",
+    "@chakra-ui/theme": "^2.1.11",
+    "@emotion/react": "^11.10.4",
+    "@emotion/styled": "^11.10.4",
+    "framer-motion": "7.3.0",
     "@image-tracer-ts/browser": "^1.0.3",
     "@image-tracer-ts/core": "^1.0.2",
     "@image-tracer-ts/nodejs": "^1.0.4",

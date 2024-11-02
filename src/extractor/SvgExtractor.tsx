@@ -20,8 +20,8 @@ export function SvgExtractor({handleSvg}: { handleSvg: (svg:string)=>void }) {
         fileToImageData(image!, 150, 200).then((imageData) => {
 
             const canvas: any = canvasRef.current;
-            canvas.width = 512;
-            canvas.height = 256;
+            //canvas.width = 512;
+            //canvas.height = 256;
             const context = canvas.getContext("2d");
             context.putImageData(imageData, 0, 0)
             const tracer = new ImageTracer(Options.Presets.posterized1)
