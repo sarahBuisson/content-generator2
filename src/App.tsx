@@ -5,6 +5,7 @@ import { clientId, clientSecret } from './Constant.ts';
 import { ImportImageFromFile, ImportImageFromURL, TakePhoto } from './extractor/Uploaders.tsx';
 import { fileToImageData } from './service/processImage.ts';
 import { ImageTracer, Options } from '@image-tracer-ts/core';
+import { GitHubLoginButton } from './save/GitHubLoginButton.tsx';
 
 const GitAuthentificator = function ({onSuccess, onFailure}: {
     onSuccess: (data: { access_token: string }) => void,
@@ -48,7 +49,7 @@ const GitAuthentificator = function ({onSuccess, onFailure}: {
 
     return <Flex justifyContent="space-around">
         {herokuOk ? <Text>CorsOk</Text> : <Link href="https://cors-anywhere.herokuapp.com/corsdemo">CorsAnywere</Link>}
-        {codeGit ? <Text>Code Git Ok</Text> : <Text>CodeGit Ko</Text>}
+        {codeGit ? <Text>Code Git Ok</Text> : <Text>CodeGit Ko<GitHubLoginButton></GitHubLoginButton></Text>}
         {token ? <Text>Token Git Ok</Text> : <Text>Token Ko</Text>}
 
     </Flex>;
@@ -58,21 +59,21 @@ function ImageImporter({onHandleImage}: {
     onHandleImage: (data: File) => void
 }) {
 
-    let [state, setState] = useState<string | undefined>()
+    const [mode, setMode] = useState<string | undefined>()
     return <Flex flexDirection="column">
         <Flex>
-            {state === "photo" && <TakePhoto onHandleImage={onHandleImage}/>}
-            {state === "file" && <ImportImageFromFile onHandleImage={onHandleImage}/>}
-            {state === "url" && <ImportImageFromURL onHandleImage={onHandleImage}/>}
+            {mode === "photo" && <TakePhoto onHandleImage={onHandleImage}/>}
+            {mode === "file" && <ImportImageFromFile onHandleImage={onHandleImage}/>}
+            {mode === "url" && <ImportImageFromURL onHandleImage={onHandleImage}/>}
         </Flex>
         <Flex justifyContent="space-around">
-            <Button variant="solid" size="md" onClick={() => setState("photo")}>
+            <Button variant="solid" size="md" onClick={() => setMode("photo")}>
                 Photo
             </Button>
-            <Button variant="solid" size="md" onClick={() => setState("file")}>
+            <Button variant="solid" size="md" onClick={() => setMode("file")}>
                 File
             </Button>
-            <Button variant="solid" size="md" onClick={() => setState("url")}>
+            <Button variant="solid" size="md" onClick={() => setMode("url")}>
                 Url
             </Button>
         </Flex>
@@ -80,7 +81,7 @@ function ImageImporter({onHandleImage}: {
 }
 
 function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: string) => void }) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>();
     const [svg, setSvg] = useState<string>("")
 
     useEffect(() => {
@@ -88,13 +89,15 @@ function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: stri
 
         fileToImageData(image!, 150, 200).then((imageData) => {
 
-            const canvas:HTMLCanvasElement  = canvasRef.current !!;
-            canvas.width = 512;
-            canvas.height = 256;
-            const context = canvas.getContext("2d")!!;
-            context.putImageData(imageData, 0, 0)
-
-
+            const canvas: HTMLCanvasElement | undefined = canvasRef?.current;
+            if (canvas) {
+                canvas.width = 512;
+                canvas.height = 256;
+                const context = canvas.getContext("2d");
+                if (context) {
+                    context.putImageData(imageData, 0, 0);
+                }
+            }
         });
 
     }, [image])
@@ -103,29 +106,30 @@ function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: stri
     function handleProcess() {
         console.log("handleProcess")
         fileToImageData(image!, 150, 200).then((imageData) => {
-console.log("fileToImageData")
-            const canvas: any = canvasRef.current;
+            console.log("fileToImageData")
+            const canvas: HTMLCanvasElement | undefined = canvasRef.current;
+            if (canvas) {
+                const context = canvas.getContext("2d");
+                if (context) {
+                    context.putImageData(imageData, 0, 0)
+                    const tracer = new ImageTracer(Options.Presets.posterized1)
 
-            const context = canvas.getContext("2d");
-            context.putImageData(imageData, 0, 0)
-            const tracer = new ImageTracer(Options.Presets.posterized1)
-
-            const svgstr = tracer.traceImage(
-                imageData
-
-            );
-            console.log("svgstr",svgstr)
-            setSvg(svgstr)
-            handleSvg(svgstr)
-
+                    const svgstr = tracer.traceImage(
+                        imageData
+                    );
+                    console.log("svgstr", svgstr)
+                    setSvg(svgstr)
+                    handleSvg(svgstr)
+                }
+            }
 
         });
     }
 
     return <Flex flexDirection="column">
         <Flex>
-            <canvas ref={canvasRef}  style={{width:"50%"}} width="50%" height="auto"/>
-            {svg && <div dangerouslySetInnerHTML={{__html: svg}}  style={{width:"50%"}}/>}
+            <canvas ref={canvasRef} style={{width: "50%"}} width="50%" height="auto"/>
+            {svg && <div dangerouslySetInnerHTML={{__html: svg}} style={{width: "50%"}}/>}
         </Flex>
         <Flex>
             <Button variant="solid" size="md" onClick={() => handleProcess()}>
@@ -139,11 +143,13 @@ console.log("fileToImageData")
     </Flex>;
 }
 
-function Saver({fileContent, token}: { fileContent: string | undefined , token: string | undefined }) {
+function Saver({fileContent, token}: { fileContent: string | undefined, token: string | undefined }) {
     const [file, setFile] = useState<File | null>(null);
     const [user, setUser] = useState<string>("sarahBuisson");
     const [repo, setRepo] = useState<string>("content-generator2");
     const [path, setPath] = useState<string>("src/assets");
+    const [name, setName] = useState<string>("");
+    const [message, setMessage] = useState<string>("");
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files) {
@@ -155,14 +161,16 @@ function Saver({fileContent, token}: { fileContent: string | undefined , token: 
 
 
         if (!file) return;
-        const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}/${file.name}`;
+        const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}/${name}.svg`;
         console.log(url)
         let content = await file.text();
         console.log(content)
         try {
             content = btoa(content);
+            setMessage("Save as " + url)
         } catch (e) {
             console.error(e);
+            setMessage("error" + e)
 
         }
 
@@ -182,20 +190,24 @@ function Saver({fileContent, token}: { fileContent: string | undefined , token: 
 
         console.log(response.data);
     }
+
     return <Flex>
         <ul>
-        <li>
-            <input type="file" onChange={handleFileChange}/></li>
-        <li> user: <input value={user} onChange={(event => setUser(event.target.value))}/>
-        </li>
-        <li> repo:<input value={repo} onChange={(event => setRepo(event.target.value))}/>
-        </li>
-        <li><input value={path} onChange={(event => setPath(event.target.value))}/>
-        </li>
-        <Button variant="solid" size="md" onClick={handleSave}>
-            Save
-        </Button>
-    </ul>
+            <li>
+                <input type="hidden" onChange={handleFileChange}/></li>
+            <li> user: <input value={user} onChange={(event => setUser(event.target.value))}/>
+            </li>
+            <li> repo:<input value={repo} onChange={(event => setRepo(event.target.value))}/>
+            </li>
+            <li><input value={path} onChange={(event => setPath(event.target.value))}/>
+            </li>
+            <li><input value={name} onChange={(event => setName(event.target.value))}/>
+            </li>
+            <Button variant="solid" size="md" onClick={handleSave}>
+                Save
+            </Button>
+            {message}
+        </ul>
 
     </Flex>;
 }
@@ -204,7 +216,9 @@ function App() {
     const [image, setImage] = useState<File>()
     const [svg, setSvg] = useState<string>()
     const [token, setToken] = useState<string>()
-    const onSuccess = (data:{access_token:string})=>{setToken(data.access_token);};
+    const onSuccess = (data: { access_token: string }) => {
+        setToken(data.access_token);
+    };
     return <ChakraProvider resetCSS>
         <GitAuthentificator onFailure={console.error} onSuccess={onSuccess}/>
         <ImageImporter onHandleImage={setImage}/>
