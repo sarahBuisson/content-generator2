@@ -148,7 +148,7 @@ function Saver({fileContent, token}: { fileContent: string | undefined, token: s
     const [user, setUser] = useState<string>("sarahBuisson");
     const [repo, setRepo] = useState<string>("content-generator2");
     const [path, setPath] = useState<string>("src/assets");
-    const [name, setName] = useState<string>("");
+    const [name, setName] = useState<string>("svg.svg");
     const [message, setMessage] = useState<string>("");
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,13 +195,13 @@ function Saver({fileContent, token}: { fileContent: string | undefined, token: s
         <ul>
             <li>
                 <input type="hidden" onChange={handleFileChange}/></li>
-            <li> user: <input value={user} onChange={(event => setUser(event.target.value))}/>
+            <li>user:<input value={user} onChange={(event => setUser(event.target.value))}/>
             </li>
-            <li> repo:<input value={repo} onChange={(event => setRepo(event.target.value))}/>
+            <li>repo:<input value={repo} onChange={(event => setRepo(event.target.value))}/>
             </li>
-            <li><input value={path} onChange={(event => setPath(event.target.value))}/>
+            <li>path:<input value={path} onChange={(event => setPath(event.target.value))}/>
             </li>
-            <li><input value={name} onChange={(event => setName(event.target.value))}/>
+            <li>name:<input value={name} onChange={(event => setName(event.target.value))}/>
             </li>
             <Button variant="solid" size="md" onClick={handleSave}>
                 Save
