@@ -6,7 +6,7 @@ export const TakePhoto: React.FC<{ onHandleImage: (file: File) => void }> = ({on
     const canvasReference = useRef<HTMLCanvasElement>(null);
 
     const startCamera = async () => {
-        const stream = await navigator.mediaDevices.getUserMedia({video: true});
+        const stream = await navigator.mediaDevices.getUserMedia({video: {facingMode:{"exact":"environment"}}});
         if (videoReference.current) {
             videoReference.current.srcObject = stream;
         }
@@ -49,7 +49,7 @@ export const ImportImageFromFile: React.FC<{ onHandleImage: (file: File) => void
     return (
         <div>
 
-            {/* eslint-disable-next-line react/jsx-handler-names */}
+
             <input type="file" accept="image/*" onChange={handleFileChange}/>
         </div>
     );

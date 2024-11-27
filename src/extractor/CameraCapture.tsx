@@ -2,12 +2,15 @@ import { useRef, useState } from 'react';
 
 export default function CameraCapture() {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [device, setDevice] = useState<string | null>("JSON");
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const startCamera = async () => {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            const stream = await navigator.mediaDevices.getUserMedia({video:  { facingMode: "environment" }});
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            setDevice(JSON.stringify(devices));
+            const stream = await navigator.mediaDevices.getUserMedia({  video:  { facingMode: {ideal:"environment" }}});
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
                 videoRef.current.play();
@@ -27,6 +30,7 @@ export default function CameraCapture() {
 
     return (
         <div>
+            {device}
             <h1>Take a Photo</h1>
             <button onClick={startCamera}>Start Camera</button>
             <div>

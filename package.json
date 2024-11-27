@@ -26,12 +26,17 @@
     "@octokit/oauth-app": "^7.1.3",
     "@octokit/rest": "^21.0.2",
     "axios": "^1.7.7",
+    "dwt": "^18.5.1",
     "framer-motion": "7.3.0",
     "imagetracerjs": "^1.2.6",
     "octokit": "^4.0.2",
     "react": "^18.2.0",
+    "react-camera-pro": "^1.4.0",
     "react-dom": "^18.2.0",
+    "react-easy-crop": "^5.1.0",
+    "react-image-crop": "^11.0.7",
     "react-login-github": "^1.0.8",
+    "react-webcam": "^7.2.0",
     "vite-plugin-pwa": "^0.17.2"
   },
   "devDependencies": {

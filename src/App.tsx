@@ -6,6 +6,7 @@ import { ImportImageFromFile, ImportImageFromURL, TakePhoto } from './extractor/
 import { fileToImageData } from './service/processImage.ts';
 import { ImageTracer, Options } from '@image-tracer-ts/core';
 import { GitHubLoginButton } from './save/GitHubLoginButton.tsx';
+import DocumentCaptureAndCrop from './extractor/DocumentCaptureAndCrop.tsx';
 
 const GitAuthentificator = function ({onSuccess, onFailure}: {
     onSuccess: (data: { access_token: string }) => void,
@@ -58,11 +59,11 @@ const GitAuthentificator = function ({onSuccess, onFailure}: {
 function ImageImporter({onHandleImage}: {
     onHandleImage: (data: File) => void
 }) {
-
     const [mode, setMode] = useState<string | undefined>()
-    return <Flex flexDirection="column">
+    return <Flex flexDirection="column" style={{"minHeight":"300px"}}>
         <Flex>
             {mode === "photo" && <TakePhoto onHandleImage={onHandleImage}/>}
+            {mode === "photo5" && <DocumentCaptureAndCrop  onHandleImage={onHandleImage}   />}
             {mode === "file" && <ImportImageFromFile onHandleImage={onHandleImage}/>}
             {mode === "url" && <ImportImageFromURL onHandleImage={onHandleImage}/>}
         </Flex>
@@ -70,6 +71,16 @@ function ImageImporter({onHandleImage}: {
             <Button variant="solid" size="md" onClick={() => setMode("photo")}>
                 Photo
             </Button>
+            <Button variant="solid" size="md" onClick={() => setMode("photo2")}>
+            Photo Pro
+        </Button>
+            <Button variant="solid" size="md" onClick={() => setMode("photo3")}>
+           dwt
+        </Button><Button variant="solid" size="md" onClick={() => setMode("photo4")}>
+           crop
+        </Button><Button variant="solid" size="md" onClick={() => setMode("photo5")}>
+           crop
+        </Button>
             <Button variant="solid" size="md" onClick={() => setMode("file")}>
                 File
             </Button>
@@ -81,7 +92,7 @@ function ImageImporter({onHandleImage}: {
 }
 
 function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: string) => void }) {
-    const canvasRef = useRef<HTMLCanvasElement>();
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const [svg, setSvg] = useState<string>("")
 
     useEffect(() => {
@@ -89,7 +100,7 @@ function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: stri
 
         fileToImageData(image!, 150, 200).then((imageData) => {
 
-            const canvas: HTMLCanvasElement | undefined = canvasRef?.current;
+            const canvas: HTMLCanvasElement | null = canvasRef?.current;
             if (canvas) {
                 canvas.width = 512;
                 canvas.height = 256;
@@ -107,7 +118,7 @@ function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: stri
         console.log("handleProcess")
         fileToImageData(image!, 150, 200).then((imageData) => {
             console.log("fileToImageData")
-            const canvas: HTMLCanvasElement | undefined = canvasRef.current;
+            const canvas: HTMLCanvasElement | null = canvasRef.current;
             if (canvas) {
                 const context = canvas.getContext("2d");
                 if (context) {
@@ -159,7 +170,7 @@ function Saver({fileContent, token}: { fileContent: string | undefined, token: s
 
     async function handleSave() {
 
-
+        console.log("file",file)
         if (!file) return;
         const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}/${name}.svg`;
         console.log(url)

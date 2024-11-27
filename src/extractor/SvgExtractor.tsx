@@ -37,6 +37,15 @@ export function SvgExtractor({handleSvg}: { handleSvg: (svg:string)=>void }) {
         });
     }
 
+    function onProcessSvg() {
+
+            setSvg(svg)
+            handleSvg(svg)
+
+
+
+    }
+
 
     return (
         <div>
@@ -53,6 +62,7 @@ export function SvgExtractor({handleSvg}: { handleSvg: (svg:string)=>void }) {
 
 
             <button onClick={onProcessImage}>process image</button>
+            <button onClick={onProcessSvg}>process image</button>
             <canvas ref={canvasRef}/>
             {svg && <div dangerouslySetInnerHTML={{__html: svg}}/>}
         </div>
