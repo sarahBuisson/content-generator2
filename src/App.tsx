@@ -4,9 +4,10 @@ import axios from 'axios';
 import { clientId, clientSecret } from './Constant.ts';
 import { ImportImageFromFile, ImportImageFromURL, TakePhoto } from './extractor/Uploaders.tsx';
 import { fileToImageData } from './service/processImage.ts';
-import { ImageTracer, Options } from '@image-tracer-ts/core';
+import { CreatePaletteMode, ImageTracer, Options, RgbColor } from '@image-tracer-ts/core';
 import { GitHubLoginButton } from './save/GitHubLoginButton.tsx';
 import DocumentCaptureAndCrop from './extractor/DocumentCaptureAndCrop.tsx';
+import { toSplitedSvg, useDefsForFillAndStroke } from './service/svg.tsx';
 
 const GitAuthentificator = function ({onSuccess, onFailure}: {
     onSuccess: (data: { access_token: string }) => void,
@@ -60,10 +61,10 @@ function ImageImporter({onHandleImage}: {
     onHandleImage: (data: File) => void
 }) {
     const [mode, setMode] = useState<string | undefined>()
-    return <Flex flexDirection="column" style={{"minHeight":"300px"}}>
+    return <Flex flexDirection="column" style={{"minHeight": "300px"}}>
         <Flex>
             {mode === "photo" && <TakePhoto onHandleImage={onHandleImage}/>}
-            {mode === "photo5" && <DocumentCaptureAndCrop  onHandleImage={onHandleImage}   />}
+            {mode === "photo5" && <DocumentCaptureAndCrop onHandleImage={onHandleImage}/>}
             {mode === "file" && <ImportImageFromFile onHandleImage={onHandleImage}/>}
             {mode === "url" && <ImportImageFromURL onHandleImage={onHandleImage}/>}
         </Flex>
@@ -72,15 +73,17 @@ function ImageImporter({onHandleImage}: {
                 Photo
             </Button>
             <Button variant="solid" size="md" onClick={() => setMode("photo2")}>
-            Photo Pro
-        </Button>
+                Photo Pro
+            </Button>
             <Button variant="solid" size="md" onClick={() => setMode("photo3")}>
-           dwt
-        </Button><Button variant="solid" size="md" onClick={() => setMode("photo4")}>
-           crop
-        </Button><Button variant="solid" size="md" onClick={() => setMode("photo5")}>
-           crop
-        </Button>
+                dwt
+            </Button>
+            <Button variant="solid" size="md" onClick={() => setMode("photo4")}>
+                crop
+            </Button>
+            <Button variant="solid" size="md" onClick={() => setMode("photo5")}>
+                crop
+            </Button>
             <Button variant="solid" size="md" onClick={() => setMode("file")}>
                 File
             </Button>
@@ -123,11 +126,25 @@ function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: stri
                 const context = canvas.getContext("2d");
                 if (context) {
                     context.putImageData(imageData, 0, 0)
-                    const tracer = new ImageTracer(Options.Presets.posterized1)
+                    let tracerOption: Partial<Options> = Options.Presets.posterized3;
+
+                    tracerOption = {
+                        ...Options.Presets.default,
+                        colorSamplingMode: CreatePaletteMode.PALETTE,
+                        colorNumber: 2,
+                        colorClusteringCycles: 1,
+                        palette: [new RgbColor(0, 0, 0, 255),
+                            new RgbColor(255, 255, 255, 255)],
+                        verbose: true
+
+                    } as Partial<Options>
+                    console.log(tracerOption)
+                    const tracer = new ImageTracer(tracerOption)
 
                     const svgstr = tracer.traceImage(
                         imageData
                     );
+
                     console.log("svgstr", svgstr)
                     setSvg(svgstr)
                     handleSvg(svgstr)
@@ -135,6 +152,20 @@ function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: stri
             }
 
         });
+    }
+
+    function onProcessSvg() {
+
+
+        const newSvg = toSplitedSvg(svg)
+        setSvg(newSvg)
+        handleSvg(newSvg)
+    }
+
+    function onProcessBlackAndwhiteSvg() {
+        const newSvg = useDefsForFillAndStroke(svg, [new RgbColor(0, 0, 0), new RgbColor(255, 255, 255)])
+        setSvg(newSvg)
+        handleSvg(newSvg)
     }
 
     return <Flex flexDirection="column">
@@ -145,6 +176,12 @@ function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: stri
         <Flex>
             <Button variant="solid" size="md" onClick={() => handleProcess()}>
                 Process
+            </Button>
+            <Button variant="solid" size="md" onClick={() => onProcessBlackAndwhiteSvg()}>
+                black and white
+            </Button>
+            <Button variant="solid" size="md" onClick={() => onProcessSvg()}>
+                split Svg
             </Button>
             <Button variant="solid" size="md">
                 Parametrage
@@ -170,7 +207,7 @@ function Saver({fileContent, token}: { fileContent: string | undefined, token: s
 
     async function handleSave() {
 
-        console.log("file",file)
+        console.log("file", file)
         if (!file) return;
         const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}/${name}.svg`;
         console.log(url)

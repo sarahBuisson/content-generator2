@@ -4,9 +4,10 @@ import TogglableWrapper from '../components/TogglableWrapper';
 import { useRef, useState } from 'react';
 import { fileToImageData } from '../service/processImage';
 import { ImageTracer, Options } from '@image-tracer-ts/core';
+import { toSplitedSvg } from '../service/svg.tsx';
 
 export function SvgExtractor({handleSvg}: { handleSvg: (svg:string)=>void }) {
-    const canvasRef = useRef(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const [image, setImage] = useState<File>()
     const [svg, setSvg] = useState("<svg>nothing</svg>")
 
@@ -19,19 +20,19 @@ export function SvgExtractor({handleSvg}: { handleSvg: (svg:string)=>void }) {
 
         fileToImageData(image!, 150, 200).then((imageData) => {
 
-            const canvas: any = canvasRef.current;
+            const canvas:HTMLCanvasElement | null = canvasRef.current;
             //canvas.width = 512;
             //canvas.height = 256;
-            const context = canvas.getContext("2d");
-            context.putImageData(imageData, 0, 0)
+            const context = canvas?.getContext("2d");
+            context?.putImageData(imageData, 0, 0)
             const tracer = new ImageTracer(Options.Presets.posterized1)
 
             const svgstr = tracer.traceImage(
                 imageData
 
             );
-            setSvg(svgstr)
-            handleSvg(svgstr)
+           // setSvg(svgstr)
+          //  handleSvg(svgstr)
 
 
         });
@@ -39,8 +40,10 @@ export function SvgExtractor({handleSvg}: { handleSvg: (svg:string)=>void }) {
 
     function onProcessSvg() {
 
-            setSvg(svg)
-            handleSvg(svg)
+
+        const newSvg=toSplitedSvg(svg)
+            setSvg(newSvg)
+            handleSvg(newSvg)
 
 
 
@@ -62,7 +65,7 @@ export function SvgExtractor({handleSvg}: { handleSvg: (svg:string)=>void }) {
 
 
             <button onClick={onProcessImage}>process image</button>
-            <button onClick={onProcessSvg}>process image</button>
+            <button onClick={onProcessSvg}>process Svg</button>
             <canvas ref={canvasRef}/>
             {svg && <div dangerouslySetInnerHTML={{__html: svg}}/>}
         </div>
