@@ -31,8 +31,8 @@ export function SvgExtractor({handleSvg}: { handleSvg: (svg:string)=>void }) {
                 imageData
 
             );
-           // setSvg(svgstr)
-          //  handleSvg(svgstr)
+            setSvg(svgstr)
+            handleSvg(svgstr)
 
 
         });

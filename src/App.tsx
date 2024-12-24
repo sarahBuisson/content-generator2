@@ -7,7 +7,7 @@ import { fileToImageData } from './service/processImage.ts';
 import { CreatePaletteMode, ImageTracer, Options, RgbColor } from '@image-tracer-ts/core';
 import { GitHubLoginButton } from './save/GitHubLoginButton.tsx';
 import DocumentCaptureAndCrop from './extractor/DocumentCaptureAndCrop.tsx';
-import { toSplitedSvg, useDefsForFillAndStroke } from './service/svg.tsx';
+import { toSplitedSvg, fillAndStrokeToDefs } from './service/svg.tsx';
 
 const GitAuthentificator = function ({onSuccess, onFailure}: {
     onSuccess: (data: { access_token: string }) => void,
@@ -69,18 +69,6 @@ function ImageImporter({onHandleImage}: {
             {mode === "url" && <ImportImageFromURL onHandleImage={onHandleImage}/>}
         </Flex>
         <Flex justifyContent="space-around">
-            <Button variant="solid" size="md" onClick={() => setMode("photo")}>
-                Photo
-            </Button>
-            <Button variant="solid" size="md" onClick={() => setMode("photo2")}>
-                Photo Pro
-            </Button>
-            <Button variant="solid" size="md" onClick={() => setMode("photo3")}>
-                dwt
-            </Button>
-            <Button variant="solid" size="md" onClick={() => setMode("photo4")}>
-                crop
-            </Button>
             <Button variant="solid" size="md" onClick={() => setMode("photo5")}>
                 crop
             </Button>
@@ -163,7 +151,7 @@ function ImageProcessor({image, handleSvg}: { image: File, handleSvg: (svg: stri
     }
 
     function onProcessBlackAndwhiteSvg() {
-        const newSvg = useDefsForFillAndStroke(svg, [new RgbColor(0, 0, 0), new RgbColor(255, 255, 255)])
+        const newSvg = fillAndStrokeToDefs(svg, [new RgbColor(0, 0, 0), new RgbColor(255, 255, 255)])
         setSvg(newSvg)
         handleSvg(newSvg)
     }

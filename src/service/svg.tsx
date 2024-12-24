@@ -1,5 +1,20 @@
 import { RgbColor } from '@image-tracer-ts/core';
 
+function mergePathIntoBox( groups: SVGGraphicsElement[] ) {
+   const compute= groups.reduce((acc, svgElement) => {
+
+        if (svgElement instanceof SVGPathElement) {
+            const rect = getBoundingBoxFromSvgPathWithoutGetBBox(svgElement)
+            acc.x = Math.min(acc.x, rect.x);
+            acc.y = Math.min(acc.y, rect.y);
+            acc.width = Math.max(acc.width, rect.x + rect.width - acc.x);
+            acc.height = Math.max(acc.height, rect.y + rect.height - acc.y);
+        }
+        return acc;
+    }, {x: Infinity, y: Infinity, width: 0, height: 0});
+   return  new DOMRect(compute.x,compute.y, compute.width, compute.height);
+}
+
 export function toSplitedSvg(svgString: string): string {
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgString, 'image/svg+xml');
@@ -20,21 +35,28 @@ export function toSplitedSvg(svgString: string): string {
     });
     boundingBoxes.pop()// on retire le 1er path
 
-    boundingBoxes.forEach((box1) => {
-        boundingBoxes.forEach((box2) => {
-            if (box1 != box2) {
+    console.log(boundingBoxes)
 
-                if (doRectsIntersect(box1.rect, box2.rect)) {
-                    box1.groups.push(box2.path)
-                    box1.groups.push(...box2.groups)
-                    box2.groups = []
+    for(let i=0;i<boundingBoxes.length;i++){
+        boundingBoxes.forEach((box1) => {
+            boundingBoxes.forEach((box2) => {
+                if (box1 != box2) {
+
+                    if (doRectsIntersect(box1.rect, box2.rect)) {
+                        console.log("intersect")
+                        box1.groups.push(box2.path)
+                        box1.groups.push(...box2.groups)
+                        box1.rect= mergePathIntoBox([...box1.groups, ...box2.groups])
+                        box2.groups = []
+                    }
                 }
-            }
+            });
         });
-    });
-    boundingBoxes = boundingBoxes.filter((box) => box.groups.length > 0)
+        boundingBoxes = boundingBoxes.filter((box) => box.groups.length > 0)
+    }
     let defs = doc.querySelector('defs');
 
+    console.log(boundingBoxes)
     if (!defs) {
         defs = doc.createElementNS('http://www.w3.org/2000/svg', 'defs');
         doc.documentElement.appendChild(defs);
@@ -53,17 +75,7 @@ export function toSplitedSvg(svgString: string): string {
         const use = doc.createElementNS('http://www.w3.org/2000/svg', 'use');
         use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#${group.id}`);
         // Calculate the bounding box that surrounds all paths
-        const allBoundingBox = box.groups.reduce((acc, svgElement) => {
-
-         if(svgElement instanceof SVGPathElement ) {
-             const rect = getBoundingBoxFromSvgPathWithoutGetBBox(svgElement)
-             acc.x = Math.min(acc.x, rect.x);
-             acc.y = Math.min(acc.y, rect.y);
-             acc.width = Math.max(acc.width, rect.x + rect.width - acc.x);
-             acc.height = Math.max(acc.height, rect.y + rect.height - acc.y);
-         }
-            return acc;
-        }, { x: Infinity, y: Infinity, width: 0, height: 0 });
+        const allBoundingBox = mergePathIntoBox(box.groups);
 
         // Create and append the rectangle
         const rect = doc.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -71,7 +83,7 @@ export function toSplitedSvg(svgString: string): string {
         rect.setAttribute('y', allBoundingBox.y.toString());
         rect.setAttribute('width', allBoundingBox.width.toString());
         rect.setAttribute('height', allBoundingBox.height.toString());
-        rect.setAttribute('stroke', 'red');
+        rect.setAttribute('stroke', RgbColor.createRandomColor().toCssColorHex());
         rect.setAttribute('fill', 'none');
         doc.documentElement.appendChild(rect);
         doc.documentElement.appendChild(use);
@@ -203,7 +215,7 @@ export function getBoundingBoxFromSvgPathWithoutGetBBox(path:SVGPathElement): DO
     return new DOMRect(minX, minY, maxX - minX, maxY - minY);
 }
 
-export function useDefsForFillAndStroke(svgString: string, palette: RgbColor[]): string {
+export function fillAndStrokeToDefs(svgString: string, palette: RgbColor[]): string {
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgString, 'image/svg+xml');
     const svg = doc.documentElement;
@@ -228,9 +240,9 @@ export function useDefsForFillAndStroke(svgString: string, palette: RgbColor[]):
             const fillId = `fill${index}`;
             const fillDef = doc.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
             fillDef.setAttribute('id', fillId);
-            fillDef.setAttribute('color', getClosestColor(fill, palette));
+            fillDef.setAttribute('color', getClosestColor( RgbColor.fromHex(fill), palette).toCssColorHex());
 
-            defs.appendChild(fillDef);
+            defs?.appendChild(fillDef);
 
 
             // Replace fill attribute with reference to defs
@@ -246,9 +258,9 @@ export function useDefsForFillAndStroke(svgString: string, palette: RgbColor[]):
 
 
             strokeDef.setAttribute('id', strokeId);
-            strokeDef.setAttribute('color', getClosestColor(stroke, palette));
+            strokeDef.setAttribute('color', getClosestColor(RgbColor.fromHex(stroke), palette).toCssColorHex());
 
-            defs.appendChild(strokeDef);
+            defs?.appendChild(strokeDef);
 
             // Replace stroke attribute with reference to defs
             svg.querySelectorAll(`[stroke="${stroke}"]`).forEach(el => el.setAttribute('stroke', `url(#${strokeId})`));
